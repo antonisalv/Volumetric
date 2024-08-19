@@ -1,0 +1,46 @@
+#version 330 core
+layout (location = 0) out vec4 FragColor;
+
+
+in VS_OUT {
+    vec3 FragPos;
+    vec3 Normal;
+    vec2 TexCoords;
+
+} fs_in;
+
+
+
+uniform int usetexture;
+
+
+void main()
+{    
+    //orizw material analoga me to antikeimeno pou xrisimopoiw
+    vec3 color;
+    if(usetexture==3)
+        color =vec3(0.8,0.8,0.8);
+    else if (usetexture==0)
+        color =vec3(0.0,0.6,0.0);
+    else if (usetexture==1)
+        color =vec3(0.34,0.34,0.34);
+    else if(usetexture==2 || usetexture==4)
+        color =vec3(0.264255 ,0.179483 ,0.109928);
+
+  
+  
+
+
+    // ambient
+    vec3 ambient = 0.3 * color;
+
+    //pernaw to antistoixo a gia to kathe uliko .Gia paradeigma xrisimopoiw 0.3 gia ta parathyra
+    if(usetexture==3)
+         FragColor = vec4(ambient* color, 0.3);
+    else
+         FragColor = vec4(ambient* color, 1.0);
+   
+
+
+}
+

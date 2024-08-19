@@ -1,0 +1,145 @@
+#version 330 core
+layout (location = 0) out vec4 FragColor;
+
+
+in VS_OUT {
+    vec3 FragPos;
+    vec3 Normal;
+    vec2 TexCoords;
+    vec3 lightPos_cameraspace;
+
+} fs_in;
+
+uniform sampler2D scene;
+uniform samplerCube depthMap;
+uniform samplerCube depthMap2;
+
+uniform int usetexture;
+uniform vec3 lightPos;
+uniform vec3 viewPos;
+uniform vec3 volumetric_control;
+uniform float far_plane;
+uniform bool shadows;
+
+
+// array of offset direction for sampling
+vec3 gridSamplingDisk[20] = vec3[]
+(
+   vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1), 
+   vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
+   vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
+   vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
+   vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
+);
+
+
+
+//elegxw an xriskomai se skia h oxi xrisimopoiontas diafores texnikes gia na veltiwsw tin poiotita tis skias
+//provlipata opws
+float ShadowCalculation(vec3 fragPos)
+{
+    // get vector between fragment position and light position
+    vec3 fragToLight = fragPos - lightPos;
+
+    float currentDepth = length(fragToLight);
+
+    float shadow = 0.0;
+    float bias = 0.15;
+    int samples = 20;
+    float viewDistance = length(viewPos - fragPos);
+    float diskRadius = (1.0 + (viewDistance / far_plane)) / 25.0;
+    for(int i = 0; i < samples; ++i)
+    {
+        float closestDepth = texture(depthMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
+        closestDepth *= far_plane;   // undo mapping [0;1]
+
+    //----------------------------------------
+        if(currentDepth - bias > closestDepth)
+            shadow += 1.0;
+    }
+    shadow /= float(samples);
+
+        
+    return shadow;
+}
+float ShadowCalculation2(vec3 fragPos)
+{
+
+    // get vector between fragment position and light position
+    vec3 fragToLight = fragPos -viewPos;
+    // use the light to fragment vector to sample from the depth map    
+    float closestDepth = texture(depthMap2, fragToLight).r;
+    // it is currently in linear range between [0,1]. Re-transform back to original value
+    closestDepth *= far_plane;
+    // now get current linear depth as the length between the fragment and light position
+    float currentDepth = length(fragToLight);
+    // now test for shadows
+    float bias = 0.05; 
+    float shadow = currentDepth -  bias > closestDepth ? 1.0 : 0.0;
+
+    return shadow;
+  
+
+        
+    return shadow;
+}
+void main()
+{    
+ 
+
+    float shadow = shadows ? ShadowCalculation(fs_in.FragPos) : 0.0; 
+    float shadow2 = shadows ? ShadowCalculation2(fs_in.FragPos) : 0.0; 
+    vec3 result = texture(scene, fs_in.TexCoords).rgb ;
+
+
+    vec3 lightDir = normalize(lightPos - fs_in.FragPos) ;
+    vec3 viewDir = normalize(viewPos - fs_in.FragPos);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+
+    float aa =dot(viewDir,lightDir); 
+
+    vec3 rayVector = (fs_in.lightPos_cameraspace - lightPos);
+
+    vec3 fragdir = normalize(fs_in.FragPos);
+    vec3 raydir = normalize(rayVector);
+    float  bb =dot(viewDir,fragdir); 
+    float met_x=1;
+    float met_z=1;
+
+    if (lightPos.x==1.5){
+          if(fs_in.FragPos.x>volumetric_control.x)
+            met_x=1;
+          else 
+            met_x=0;
+    }
+    if (lightPos.x==-2.5){
+          if(fs_in.FragPos.x<volumetric_control.x)
+            met_x=1;
+          else 
+            met_x=0;
+    }
+
+   if (lightPos.z!=-12 ){
+          if(fs_in.FragPos.z<volumetric_control.z)
+            met_z=0;
+          else 
+            met_z=1;
+    }
+   if (lightPos.z==-12){
+          if(fs_in.FragPos.z<volumetric_control.z)
+            met_z=1;
+          else 
+            met_z=0;
+    }
+
+   if(usetexture==3 && aa<0)
+         FragColor = vec4(rayVector.x, rayVector.y,(1-shadow)*(1-shadow2)*met_x*met_z, 1.0);
+   else  if(usetexture==4)
+         FragColor = vec4(rayVector.x, rayVector.y,2, 1.0);
+
+   else
+         FragColor = vec4(rayVector.x, rayVector.y,0, 1.0);
+
+
+}
+

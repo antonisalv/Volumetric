@@ -1,0 +1,18 @@
+#version 330 core
+in vec4 FragPos;
+
+uniform vec3 campos;
+uniform float far_plane;
+
+void main()
+{   
+
+
+    float camDistance = length(FragPos.xyz - campos);
+    
+    // map to [0;1] range by dividing by far_plane
+    camDistance = camDistance / far_plane;
+    
+    // write this as modified depth
+    gl_FragDepth = camDistance;
+}

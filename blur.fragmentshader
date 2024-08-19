@@ -1,0 +1,56 @@
+#version 330 core
+layout (location = 0) out vec4 FragColor;
+
+
+in vec2 TexCoords;
+uniform sampler2D arxikocolor;
+uniform sampler2D bw;
+
+
+float decay = 0.9599875;
+float weight = 0.322125;
+int Samples = 128 ;
+
+
+void main()
+{      
+
+     
+
+
+     vec3 result = texture(arxikocolor, TexCoords).rgb ;
+     vec3 arxresult = texture(arxikocolor, TexCoords).rgb ;
+     vec2 TexCoord =TexCoords;
+     vec2 Direction= normalize(texture(bw, TexCoords).rg);
+
+     Direction /= Samples;  
+     float el=0;
+
+
+             
+      for(int i = 0; i < Samples; ++i)
+      {
+                     
+           TexCoord += Direction;
+           result += texture(arxikocolor, TexCoord).rgb*weight;
+           if (TexCoord.x>1 || TexCoord.x<0 || TexCoord.y>1 || TexCoord.y<0){
+                  break;
+           }
+           if (texture(bw, TexCoord ).b==2 && Direction.y>0 ){          
+                  el=0;
+                  break;
+           }          
+           if (texture(bw, TexCoord).b==1){
+                  el=1;
+           }
+                     
+           weight*=decay;
+       }
+                
+
+      if(el==1)
+         FragColor = vec4(result, 1.0);  
+      else
+         FragColor = vec4(arxresult, 1.0); 
+    
+}
