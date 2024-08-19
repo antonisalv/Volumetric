@@ -143,7 +143,7 @@ void mainLoop()
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(2);
 
-    //----------------------domatio------------------------------
+    //----------------------house------------------------------
 
     glGenVertexArrays(1, &D_objVAO);
     glBindVertexArray(D_objVAO);
@@ -198,7 +198,7 @@ void mainLoop()
     glEnableVertexAttribArray(2);
 
    // ------------------------------------------------------------------
-   //ftiaxnw to dapedo
+   //create floor
     float planeVertices[] = {
         // positions            // normals         // texcoords
          25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
@@ -227,7 +227,7 @@ void mainLoop()
 
 
 
-   // dimiourgw ton framebuffer gia tis skies me tin xrisi cubeMap
+   // create framebuffer for shadows with cubeMap
    // -----------------------
     const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
     unsigned int depthMapFBO;
@@ -273,7 +273,7 @@ void mainLoop()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-    // dimiourgw ton framebuffer gia to hdr
+    // create framebuffer for hdr
     // ------------------------------------
     unsigned int hdrFBO;
     glGenFramebuffers(1, &hdrFBO);
@@ -301,7 +301,7 @@ void mainLoop()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-    // Framebuffer gia Volumetric
+    // Framebuffer for Volumetric
     unsigned int pingpongFBO[2];
     unsigned int pingpongColorbuffers[2];
     glGenFramebuffers(2, pingpongFBO);
@@ -346,7 +346,7 @@ void mainLoop()
 
 
 
-    // pernaw ta textures stous shaders
+    //  textures to shaders
     // --------------------
     shader.use();
     shader.setInt("depthMap", 1);
@@ -371,7 +371,7 @@ void mainLoop()
 
         glm::vec3 lightPos(start_lightPos.x, start_lightPos.y , start_lightPos.z );
 
-        //Ta xrisimopoiw sthn camera    
+        //for camera    
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -410,7 +410,7 @@ void mainLoop()
         shadowTransforms2.push_back(shadowProj * glm::lookAt(camera.Position, camera.Position + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
         shadowTransforms2.push_back(shadowProj * glm::lookAt(camera.Position, camera.Position + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
 
-        // 1. kanw render tin skini moy ston depth buffer
+        // 1.  render the scene to depth buffer
         // --------------------------------
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
@@ -437,7 +437,7 @@ void mainLoop()
 
 
 
-        // 2. Kanw render tin skini mou kanonika kanotnas xrisi tou depth buffer
+        // 2.  render the scene using depth buffer
         // -------------------------
         glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
@@ -514,7 +514,7 @@ void mainLoop()
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-        // 5. Kanw render ton color buffer se ena 2D quad kai kanw tonemap ta HDR colors 
+        // 5.  render color buffer in a 2D quad and tonemap HDR colors 
         // --------------------------------------------------------------------------------------------------------------------------
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         hdrShader.use();
@@ -548,7 +548,7 @@ void renderScene(const Shader& shader)
 
 
 
-    //spiti
+    //house
     model = glm::mat4(1.0f);
     shader.setMat4("model", model);
     shader.setInt("usetexture", 1);
@@ -564,7 +564,7 @@ void renderScene(const Shader& shader)
 
 
 
-    //cube (metakinisi tou cube meta arrows)
+    //cube (move cube with arrows)
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(2.0f + c_x, 0.75f, -2.0f + c_z));
     model = glm::scale(model, glm::vec3(0.3f));
@@ -584,7 +584,7 @@ void renderScene(const Shader& shader)
 }
 
 
-// renders the 3D scene --> xwris ta tzamia(gia na mporei na pernaei to fws) dioti otan evala cubemap gia ta shadows den pernouse to fws mesa apo ta parathyra
+// renders the 3D scene --> without windows(so lighting can pass)
 void renderScene2(const Shader& shader)
 {
 
@@ -598,7 +598,7 @@ void renderScene2(const Shader& shader)
 
 
 
-    //spiti
+    //house
     model = glm::mat4(1.0f);
     shader.setMat4("model", model);
     shader.setInt("usetexture", 1);
@@ -613,7 +613,7 @@ void renderScene2(const Shader& shader)
     glBindVertexArray(C_objVAO);
     glDrawArrays(GL_TRIANGLES, 0, C_objVertices.size());
 
-    //cube (metakinisi tou cube meta arrows)
+    //cube 
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(2.0f + c_x, 0.75f, -2.0f + c_z));
     model = glm::scale(model, glm::vec3(0.3f));
